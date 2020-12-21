@@ -23,7 +23,7 @@ sudo apt-get install libxml2-dev libxslt-dev python-dev lib32z1-dev
 
 1. `sudo apt-get install libcurl4-openssl-dev`
 2. 检查头文件
-   ```shell
+   ```
     zeevel@zeevel-virtual-machine:~/tkj/multi$ ls /usr/include/x86_64-linux-gnu/ | grep curl
     curl
     zeevel@zeevel-virtual-machine:~/tkj/multi$ ls /usr/include/x86_64-linux-gnu/curl/ 
