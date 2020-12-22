@@ -24,7 +24,7 @@ def configure(conf):
                                  "library 'xml' not found")
 
 def build(bld):
-    module = bld.create_ns3_module('das', ['internet', 'mobility', 'wifi'])
+    module = bld.create_ns3_module('das', ['internet', 'mobility', 'wifi', 'opengym'])
     module.source = [
         'model/das.cc',
         'helper/das-helper.cc',
