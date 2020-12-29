@@ -24,6 +24,10 @@
 #define DASH_RL_BASED_ADAPTATION_LOGIC
 
 #include "../model/adaptation-logic.h"
+// #include "MediaGym.h"
+#include "ns3/MediaGym.h"
+#include "ns3/core-module.h"
+#include "ns3/opengym-module.h"
 
 namespace ns3 {
 namespace dash {
@@ -32,6 +36,12 @@ class RlBasedAdaptationLogic : public AdaptationLogic {
  public:
   RlBasedAdaptationLogic(MultimediaPlayer *mPlayer) : AdaptationLogic(mPlayer) {
     currentSegmentNumber = 0;
+    std::cout << "Connecting to RL Proxy" << std::endl;
+    std::cout << "mPlayer args RlBasedAdaptationLogic Constructor" << std::endl;
+    openGymPort = 5555;
+    openGymInterface = CreateObject<OpenGymInterface>(openGymPort);
+    myGymEnv = CreateObject<ns3::MediaGym>();
+    myGymEnv->SetOpenGymInterface(openGymInterface);
   }
 
   virtual std::string GetName() const {
@@ -56,6 +66,11 @@ class RlBasedAdaptationLogic : public AdaptationLogic {
     ENSURE_ADAPTATION_LOGIC_REGISTERED(RlBasedAdaptationLogic);
     std::cout << "RL adaptation registered !!!!!" << std::endl;
   }
+
+ public:
+  uint32_t openGymPort;
+  Ptr<OpenGymInterface> openGymInterface;
+  Ptr<ns3::MediaGym> myGymEnv;
 };
 }  // namespace player
 }  // namespace dash

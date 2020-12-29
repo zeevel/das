@@ -82,7 +82,8 @@ def build(bld):
         'alogic/adaptation-logic-svc-rate-based.cpp',
         'alogic/adaptation-logic.cpp',
         'alogic/adaptation-no-logic.cpp',
-        'alogic/adaptation-logic-rl-based.cpp'
+        'alogic/adaptation-logic-rl-based.cpp',
+        'alogic/MediaGym.cpp'
         ]
 
     module_test = bld.create_ns3_module_test_library('das')
@@ -182,7 +183,8 @@ def build(bld):
         'alogic/adaptation-logic-svc-buffer-based.h',
         'alogic/adaptation-logic-svc-rate-based.h',
         'alogic/adaptation-no-logic.h',
-        'alogic/adaptation-logic-rl-based.h'
+        'alogic/adaptation-logic-rl-based.h',
+        'alogic/MediaGym.h'
         ]
     
     # if bld.env['ENABLE_CURL']:

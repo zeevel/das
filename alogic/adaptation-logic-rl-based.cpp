@@ -45,31 +45,65 @@ ISegmentURL *RlBasedAdaptationLogic::GetNextSegment(
     return NULL;  // everything downloaded
   }
 
+  // 测试用 仅向rl agent传递固定状态
+  myGymEnv->UpdateState(*requested_segment_number, 100, 100, 100, 100, 100);
+
+  int64_t m_repindex = myGymEnv->GetRepIndex();
+
+  // IRepresentation *rep =
+  (this->m_availableRepresentations->begin()->second);
   const IRepresentation *useRep = NULL;
-
-  double highest_bitrate = 0.0;
-
-  RepresentationsMap::iterator it;
-
-  // for (auto& keyValue : *(this->m_availableRepresentations))
-  for (it = m_availableRepresentations->begin();
-       it != m_availableRepresentations->end(); it++) {
-    const IRepresentation *rep = it->second;
-    if (rep->GetBandwidth() < last_download_speed) {
-      if (rep->GetBandwidth() > highest_bitrate) {
-        useRep = rep;
-        highest_bitrate = rep->GetBandwidth();
-      }
+  int idx = 0;
+  for (RepresentationsMap::iterator it = m_availableRepresentations->begin();
+       it != m_availableRepresentations->end() && idx <= m_repindex;
+       it++, idx++) {
+    if (idx == m_repindex) {
+      useRep = it->second;
     }
   }
-
   if (useRep == NULL) useRep = GetLowestRepresentation();
-
-  // IRepresentation* rep = (this->m_availableRepresentations->begin()->second);
   *usedRepresentation = useRep;
+
   *requested_segment_number = currentSegmentNumber;
   *hasDownloadedAllSegments = false;
   return useRep->GetSegmentList()->GetSegmentURLs().at(currentSegmentNumber++);
+
+  // double last_download_speed =
+  //     this->m_multimediaPlayer->GetLastDownloadBitRate();
+
+  // if (currentSegmentNumber < getTotalSegments())
+  //   *hasDownloadedAllSegments = false;
+  // else {
+  //   *hasDownloadedAllSegments = true;
+  //   return NULL;  // everything downloaded
+  // }
+
+  // const IRepresentation *useRep = NULL;
+
+  // double highest_bitrate = 0.0;
+
+  // RepresentationsMap::iterator it;
+
+  // // for (auto& keyValue : *(this->m_availableRepresentations))
+  // for (it = m_availableRepresentations->begin();
+  //      it != m_availableRepresentations->end(); it++) {
+  //   const IRepresentation *rep = it->second;
+  //   if (rep->GetBandwidth() < last_download_speed) {
+  //     if (rep->GetBandwidth() > highest_bitrate) {
+  //       useRep = rep;
+  //       highest_bitrate = rep->GetBandwidth();
+  //     }
+  //   }
+  // }
+
+  // if (useRep == NULL) useRep = GetLowestRepresentation();
+
+  // // IRepresentation* rep =
+  // (this->m_availableRepresentations->begin()->second); *usedRepresentation =
+  // useRep; *requested_segment_number = currentSegmentNumber;
+  // *hasDownloadedAllSegments = false;
+  // return
+  // useRep->GetSegmentList()->GetSegmentURLs().at(currentSegmentNumber++);
 }
 }  // namespace player
 }  // namespace dash

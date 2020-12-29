@@ -10,7 +10,7 @@ MediaGym::MediaGym() {
 
   m_new_rep_index = 0;
   m_old_rep_index = 0;
-  m_highestRepIndex = 8;
+  m_highestRepIndex = 3;
   m_lastSegmentIndex = 10;
   m_reward = 1;
   m_bufferLast = 0;
