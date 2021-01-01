@@ -24,10 +24,16 @@
 #define DASH_RL_BASED_ADAPTATION_LOGIC
 
 #include "../model/adaptation-logic.h"
-// #include "MediaGym.h"
-#include "ns3/MediaGym.h"
+#include "MediaGym.h"
+// #include "ns3/MediaGym.h"
+#include <stack>
+
 #include "ns3/core-module.h"
 #include "ns3/opengym-module.h"
+
+extern unsigned int segmentTotalNumber;
+extern double bufferNow;
+extern double lastSegmentBitrate;
 
 namespace ns3 {
 namespace dash {
@@ -71,6 +77,10 @@ class RlBasedAdaptationLogic : public AdaptationLogic {
   uint32_t openGymPort;
   Ptr<OpenGymInterface> openGymInterface;
   Ptr<ns3::MediaGym> myGymEnv;
+
+  std::map<int /*level/layer*/, IRepresentation *> m_orderdByDepIdReps;
+  std::stack<dash::mpd::IRepresentation *> repsForCurSegment;
+  unsigned int curSegmentNumber;
 };
 }  // namespace player
 }  // namespace dash

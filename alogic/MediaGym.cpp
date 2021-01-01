@@ -18,6 +18,10 @@ MediaGym::MediaGym() {
   m_lastChunkStartTime = 0;
   m_lastChunkSize = 0;
   m_rebufferTime = 0;
+
+  m_segmentTotalNumber = 100;
+  m_bufferNow = 30;
+  m_lastSegmentBitrate = 1000000;
 }
 
 MediaGym::~MediaGym() { NS_LOG_FUNCTION(this); }
@@ -43,29 +47,17 @@ Ptr<OpenGymSpace> MediaGym::GetObservationSpace() {
   uint32_t rebuffertime = 2000000;
   uint32_t lastchunksize = 0;
 
-  Ptr<OpenGymDiscreteSpace> buffer =
-      CreateObject<OpenGymDiscreteSpace>(buffernum);
-  Ptr<OpenGymDiscreteSpace> lastRequest =
-      CreateObject<OpenGymDiscreteSpace>(lastReq);
-  Ptr<OpenGymDiscreteSpace> lastQuality =
-      CreateObject<OpenGymDiscreteSpace>(lastQual);
-  Ptr<OpenGymDiscreteSpace> lastChunkFinishTime =
-      CreateObject<OpenGymDiscreteSpace>(lastchunkfinishtime);
-  Ptr<OpenGymDiscreteSpace> lastChunkStartTime =
-      CreateObject<OpenGymDiscreteSpace>(lastchunkstarttime);
-  Ptr<OpenGymDiscreteSpace> RebufferTime =
-      CreateObject<OpenGymDiscreteSpace>(rebuffertime);
-  Ptr<OpenGymDiscreteSpace> lastChunkSize =
-      CreateObject<OpenGymDiscreteSpace>(lastchunksize);
+  double bufferN = 30;
+  double lastSegmentB = 1000000;
+
+  Ptr<OpenGymDiscreteSpace> bufferNow =
+      CreateObject<OpenGymDiscreteSpace>(bufferN);
+  Ptr<OpenGymDiscreteSpace> lastSegmentBitrate =
+      CreateObject<OpenGymDiscreteSpace>(lastSegmentB);
 
   Ptr<OpenGymDictSpace> space = CreateObject<OpenGymDictSpace>();
-  space->Add("buffer", buffer);
-  space->Add("lastRequest", lastRequest);
-  space->Add("lastQuality", lastQuality);
-  space->Add("lastChunkFinishTime", lastChunkFinishTime);
-  space->Add("lastChunkStartTime", lastChunkStartTime);
-  space->Add("RebufferTime", RebufferTime);
-  space->Add("lastChunkSize", lastChunkSize);
+  space->Add("bufferNow", bufferNow);
+  space->Add("lastSegmentBitrate", lastSegmentBitrate);
 
   return space;
 }
@@ -81,8 +73,8 @@ Ptr<OpenGymSpace> MediaGym::GetActionSpace() {
 bool MediaGym::GetGameOver() {
   NS_LOG_FUNCTION(this);
   bool isGameOver = false;
-  if (m_segmentCounter == m_lastSegmentIndex - 1) {
-    NS_LOG_UNCOND("seg counter: " << m_segmentCounter);
+  if (m_segmentTotalNumber == m_lastSegmentIndex - 1) {
+    NS_LOG_UNCOND("seg counter: " << m_segmentTotalNumber);
     NS_LOG_UNCOND("last seg: " << m_lastSegmentIndex);
     isGameOver = true;
     NS_LOG_UNCOND("GetGameOver: " << isGameOver);
@@ -92,44 +84,30 @@ bool MediaGym::GetGameOver() {
 
 Ptr<OpenGymDataContainer> MediaGym::GetObservation() {
   NS_LOG_FUNCTION(this);
+  // std::cout << "[MediaGym::GetObservation()]" << std::endl;
 
-  Ptr<OpenGymDiscreteContainer> buffer =
+  Ptr<OpenGymDiscreteContainer> bufferNow =
       CreateObject<OpenGymDiscreteContainer>();
-  Ptr<OpenGymDiscreteContainer> lastRequest =
-      CreateObject<OpenGymDiscreteContainer>();
-  Ptr<OpenGymDiscreteContainer> lastQuality =
-      CreateObject<OpenGymDiscreteContainer>();
-  Ptr<OpenGymDiscreteContainer> lastChunkFinishTime =
-      CreateObject<OpenGymDiscreteContainer>();
-  Ptr<OpenGymDiscreteContainer> lastChunkStartTime =
-      CreateObject<OpenGymDiscreteContainer>();
-  Ptr<OpenGymDiscreteContainer> RebufferTime =
-      CreateObject<OpenGymDiscreteContainer>();
-  Ptr<OpenGymDiscreteContainer> lastChunkSize =
+  Ptr<OpenGymDiscreteContainer> lastSegmentBitrate =
       CreateObject<OpenGymDiscreteContainer>();
 
-  buffer->SetValue(m_bufferNow);
-  lastRequest->SetValue(m_segmentCounter);
-  lastQuality->SetValue(m_new_rep_index);
-  lastChunkFinishTime->SetValue(m_lastChunkFinishTime);
-  lastChunkStartTime->SetValue(m_lastChunkStartTime);
-  RebufferTime->SetValue(m_rebufferTime);
-  lastChunkSize->SetValue(m_lastChunkSize);
+  bufferNow->SetValue(m_bufferNow);
+  lastSegmentBitrate->SetValue(m_lastSegmentBitrate);
 
   Ptr<OpenGymDictContainer> space = CreateObject<OpenGymDictContainer>();
-  space->Add("buffer", buffer);
-  space->Add("lastRequest", lastRequest);
-  space->Add("lastQuality", lastQuality);
-  space->Add("lastChunkFinishTime", lastChunkFinishTime);
-  space->Add("lastChunkStartTime", lastChunkStartTime);
-  space->Add("RebufferTime", RebufferTime);
-  space->Add("lastChunkSize", lastChunkSize);
+  space->Add("bufferNow", bufferNow);
+  space->Add("lastSegmentBitrate", lastSegmentBitrate);
 
   return space;
 }
 
 float MediaGym::GetReward() {
   NS_LOG_FUNCTION(this);
+  if (m_bufferNow > m_bufferLast) {
+    m_reward = m_reward + 1;
+  } else {
+    m_reward = 0;
+  }
   return m_reward;
 }
 
@@ -150,6 +128,7 @@ bool MediaGym::ExecuteActions(Ptr<OpenGymDataContainer> action) {
 void MediaGym::ClearObs() { NS_LOG_FUNCTION(this); }
 
 uint32_t MediaGym::GetRepIndex() {
+  std::cout << "[MediaGym::GetRepIndex()]" << std::endl;
   Notify();
   return m_new_rep_index;
 }
@@ -159,17 +138,13 @@ void MediaGym::PrintState() {
                             << " --  Rep new : " << m_new_rep_index);
 }
 
-void MediaGym::UpdateState(int64_t segmentCounter, int64_t bufferNow,
-                           int64_t lastchunkfinishtime,
-                           int64_t lastchunkstarttime, int64_t lastchunksize,
-                           int64_t rebuffertime) {
-  m_lastChunkFinishTime = lastchunkfinishtime;
-  m_lastChunkStartTime = lastchunkstarttime;
-  m_segmentCounter = segmentCounter;
-  m_bufferLast = m_bufferNow;
+void MediaGym::UpdateState(unsigned int segmentTotalNumber, double bufferNow,
+                           double lastSegmentBitrate) {
+  printf("[MediaGym::UpdateStaet(%d, %lf, %lf)\n", segmentTotalNumber,
+         bufferNow, lastSegmentBitrate);
   m_bufferNow = bufferNow;
-  m_lastChunkSize = lastchunksize;
-  m_rebufferTime = rebuffertime;
+  m_bufferLast = m_bufferNow;
+  m_lastSegmentBitrate = lastSegmentBitrate;
 }
 
 }  // namespace ns3

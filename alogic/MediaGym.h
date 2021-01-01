@@ -4,6 +4,7 @@
 #include "ns3/core-module.h"
 #include "ns3/opengym-module.h"
 
+
 namespace ns3 {
 
 class MediaGym : public OpenGymEnv {
@@ -27,23 +28,26 @@ class MediaGym : public OpenGymEnv {
   void ClearObs();
   uint32_t GetRepIndex();
   void PrintState();
-  void UpdateState(int64_t segmentCounter, int64_t bufferNow,
-                   int64_t lastchunkfinishtime, int64_t lastchunkstarttime,
-                   int64_t m_lastchunksize, int64_t rebuffertime);
+  void UpdateState(unsigned int segmentTotalNumber, double bufferNow,
+                   double lastchunkfinishtime);
 
  protected:
   int64_t m_highestRepIndex;
   int64_t m_lastSegmentIndex;
   uint32_t m_old_rep_index;
   uint32_t m_new_rep_index;
-  int64_t m_bufferNow;
-  int64_t m_bufferLast;
-  int64_t m_segmentCounter;
   int64_t m_reward;
   int64_t m_lastChunkFinishTime;
   int64_t m_lastChunkStartTime;
   int64_t m_lastChunkSize;
   int64_t m_rebufferTime;
+
+  //oberservation
+  unsigned int m_segmentTotalNumber;
+  double m_bufferNow;
+  double m_lastSegmentBitrate;
+  double m_bufferLast;
+
 };
 
 }  // namespace ns3

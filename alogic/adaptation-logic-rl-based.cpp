@@ -31,6 +31,8 @@ namespace player {
 
 ENSURE_ADAPTATION_LOGIC_INITIALIZED(RlBasedAdaptationLogic)
 
+// segmentTotalNumber = getTotalSegments();
+
 ISegmentURL *RlBasedAdaptationLogic::GetNextSegment(
     unsigned int *requested_segment_number,
     const dash::mpd::IRepresentation **usedRepresentation,
@@ -45,65 +47,43 @@ ISegmentURL *RlBasedAdaptationLogic::GetNextSegment(
     return NULL;  // everything downloaded
   }
 
-  // 测试用 仅向rl agent传递固定状态
-  myGymEnv->UpdateState(*requested_segment_number, 100, 100, 100, 100, 100);
+  unsigned int segmentTotalNumber = getTotalSegments();
+  std::cout << "--------------segmentTotalNumber------------"
+            << segmentTotalNumber << std::endl;
 
-  int64_t m_repindex = myGymEnv->GetRepIndex();
+  double bufferNow = m_multimediaPlayer->GetBufferLevel();
+  std::cout << "-------------bufferNow-------------" << bufferNow << std::endl;
+
+  double lastSegmentBitrate = m_multimediaPlayer->GetLastDownloadBitRate();
+  std::cout << "-------------lastSegmentBitrate-------------"
+            << lastSegmentBitrate << std::endl;
+
+  // 测试用 仅向rl agent传递固定状态
+  myGymEnv->UpdateState(segmentTotalNumber, bufferNow, lastSegmentBitrate);
+
+  int m_repindex = myGymEnv->GetRepIndex();
+
+  std::cout << "env get action from the rl-test agent: action is " << m_repindex
+            << std::endl;
+
+  //------------------------------------------------------------------------
 
   // IRepresentation *rep =
-  (this->m_availableRepresentations->begin()->second);
-  const IRepresentation *useRep = NULL;
-  int idx = 0;
-  for (RepresentationsMap::iterator it = m_availableRepresentations->begin();
-       it != m_availableRepresentations->end() && idx <= m_repindex;
-       it++, idx++) {
-    if (idx == m_repindex) {
-      useRep = it->second;
-    }
-  }
-  if (useRep == NULL) useRep = GetLowestRepresentation();
+  // (this->m_availableRepresentations->begin()->second);
+  const IRepresentation *useRep = GetLowestRepresentation();
+  // int idx = 0;
+  // for (RepresentationsMap::iterator it = m_availableRepresentations->begin();
+  //      it != m_availableRepresentations->end() && idx <= m_repindex;
+  //      it++, idx++) {
+  //   if (idx == m_repindex) {
+  //     useRep = it->second;
+  //   }
+  // }
   *usedRepresentation = useRep;
 
   *requested_segment_number = currentSegmentNumber;
   *hasDownloadedAllSegments = false;
   return useRep->GetSegmentList()->GetSegmentURLs().at(currentSegmentNumber++);
-
-  // double last_download_speed =
-  //     this->m_multimediaPlayer->GetLastDownloadBitRate();
-
-  // if (currentSegmentNumber < getTotalSegments())
-  //   *hasDownloadedAllSegments = false;
-  // else {
-  //   *hasDownloadedAllSegments = true;
-  //   return NULL;  // everything downloaded
-  // }
-
-  // const IRepresentation *useRep = NULL;
-
-  // double highest_bitrate = 0.0;
-
-  // RepresentationsMap::iterator it;
-
-  // // for (auto& keyValue : *(this->m_availableRepresentations))
-  // for (it = m_availableRepresentations->begin();
-  //      it != m_availableRepresentations->end(); it++) {
-  //   const IRepresentation *rep = it->second;
-  //   if (rep->GetBandwidth() < last_download_speed) {
-  //     if (rep->GetBandwidth() > highest_bitrate) {
-  //       useRep = rep;
-  //       highest_bitrate = rep->GetBandwidth();
-  //     }
-  //   }
-  // }
-
-  // if (useRep == NULL) useRep = GetLowestRepresentation();
-
-  // // IRepresentation* rep =
-  // (this->m_availableRepresentations->begin()->second); *usedRepresentation =
-  // useRep; *requested_segment_number = currentSegmentNumber;
-  // *hasDownloadedAllSegments = false;
-  // return
-  // useRep->GetSegmentList()->GetSegmentURLs().at(currentSegmentNumber++);
 }
 }  // namespace player
 }  // namespace dash
