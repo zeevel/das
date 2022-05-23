@@ -117,3 +117,4 @@ sudo apt-get install libxml2-dev libxslt-dev python-dev lib32z1-dev
     ./waf
   ```
 
+需注意的是，以上示例步骤中的路径可能会根据不同ubuntu版本发生改变
